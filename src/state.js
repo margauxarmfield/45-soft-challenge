@@ -144,6 +144,7 @@
 
   function save(s) {
     localStorage.setItem(STORAGE_KEY, JSON.stringify(s));
+    _saveRemote(s);
   }
 
   function migrate(s) {
@@ -246,6 +247,46 @@
     return personState.history[iso];
   }
 
+  // ---- Firebase real-time sync ----
+  let _db = null;
+  const FS_DOC = 'challenges/shared';
+  let _lastSynced = null; // track our own writes to avoid echo loop
+
+  function initFirebase(cfg) {
+    try {
+      if (!window.firebase) return;
+      if (!firebase.apps.length) firebase.initializeApp(cfg);
+      _db = firebase.firestore();
+    } catch (e) {
+      console.warn('Firebase init failed', e);
+    }
+  }
+
+  function _saveRemote(s) {
+    if (!_db) return;
+    const raw = JSON.stringify(s);
+    _lastSynced = raw;
+    _db.doc(FS_DOC).set({ data: raw }).catch((e) => console.warn('Firestore write failed', e));
+  }
+
+  function subscribe(onRemoteChange) {
+    if (!_db) return () => {};
+    const unsub = _db.doc(FS_DOC).onSnapshot((snap) => {
+      if (!snap.exists) return;
+      if (snap.metadata.hasPendingWrites) return;
+      const raw = snap.data().data;
+      if (raw === _lastSynced) return; // our own write echoed back, skip
+      try {
+        const s = migrate(JSON.parse(raw));
+        _lastSynced = raw;
+        onRemoteChange(s);
+      } catch (e) {
+        console.warn('Firestore snapshot error', e);
+      }
+    });
+    return unsub;
+  }
+
   // Expose
   window.Challenge = {
     START_DATE,
@@ -265,5 +306,8 @@
     ensureDayRecord,
     seedState,
     clone,
+    initFirebase,
+    subscribe,
+    _saveRemote,
   };
 })();

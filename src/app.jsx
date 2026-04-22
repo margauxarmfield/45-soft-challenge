@@ -19,7 +19,23 @@ function App() {
     showDayStrip: TWEAK_DEFAULTS.showDayStrip
   }));
 
-  // Persist state
+  // Firebase init + real-time sync
+  useEffect(() => {
+    Challenge.initFirebase({
+      apiKey: "AIzaSyCbGt0Z3A3ySsv1IoMgK0_MQEGIl2logpE",
+      authDomain: "soft-challenge-be2ff.firebaseapp.com",
+      projectId: "soft-challenge-be2ff",
+      storageBucket: "soft-challenge-be2ff.firebasestorage.app",
+      messagingSenderId: "166470624080",
+      appId: "1:166470624080:web:f1477b7fa30720e5d44255",
+    });
+    const unsub = Challenge.subscribe((remoteState) => {
+      setState(remoteState);
+    });
+    return unsub;
+  }, []);
+
+  // Persist state locally + remotely on every change
   useEffect(() => {Challenge.save(state);}, [state]);
 
   // Ensure today's day record exists (for auto-check defaults)
