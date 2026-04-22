@@ -419,6 +419,29 @@ input, textarea { font-family: inherit; color: inherit; }
 }
 .viz-and-input .amt-stepper { align-self: flex-start; }
 .viz-and-input .viz-wrap.wide { width: 100%; }
+.water-row { display: flex; align-items: flex-end; gap: 14px; flex-wrap: wrap; }
+.plant-wrap {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  margin-left: auto;
+}
+.plant-svg { display: block; }
+.plant-body { animation: plant-wiggle 0.7s cubic-bezier(.36,1.6,.5,1); }
+@keyframes plant-wiggle {
+  0% { transform: rotate(0deg) scaleY(1); }
+  20% { transform: rotate(-4deg) scaleY(0.96); }
+  45% { transform: rotate(5deg) scaleY(1.04); }
+  70% { transform: rotate(-2deg) scaleY(1.01); }
+  100% { transform: rotate(0deg) scaleY(1); }
+}
+.plant-caption {
+  font-family: var(--hand, 'Caveat', cursive);
+  font-size: 14px;
+  color: var(--ink-soft);
+  text-align: center;
+}
 
 /* ---------- Visuals ---------- */
 .viz-wrap {

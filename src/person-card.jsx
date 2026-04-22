@@ -152,7 +152,10 @@ function PersonCard({
             tooltip="Striped fill = where you should be by now. Solid fill = what you've logged. Check the box to snap to 100%."
             rightSlot={
               <div className="viz-and-input">
-                <WaterBottle amount={rec.waterAmt || 0} goal={g.water} paceFrac={paceForDate} color={person.color} />
+                <div className="water-row">
+                  <WaterBottle amount={rec.waterAmt || 0} goal={g.water} paceFrac={paceForDate} color={person.color} />
+                  <WaterPlant amount={rec.waterAmt || 0} goal={g.water} color={person.color} />
+                </div>
                 <AmountStepper
                   value={rec.waterAmt || 0}
                   onChange={setAmt('water', 'waterAmt', g.water)}

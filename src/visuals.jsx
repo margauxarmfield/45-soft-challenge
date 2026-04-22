@@ -351,4 +351,98 @@ function StepsViz(props) {
   return <StepsWalker {...props} />;
 }
 
-Object.assign(window, { WaterBottle, StepsViz, StepsWalker, StepsRing, StepsFootprints, fmtSteps });
+// ---------- WaterPlant ----------
+// Cute plant that grows with water intake. Wiggles + splashes on increase.
+function WaterPlant({ amount = 0, goal, color = '#6CB5E0' }) {
+  const pct = Math.max(0, Math.min(1, amount / Math.max(1, goal)));
+  const prev = useRef(amount);
+  const [splash, setSplash] = useState(0);
+  const [wiggle, setWiggle] = useState(0);
+  useEffect(() => {
+    if (amount > prev.current) {
+      setSplash((s) => s + 1);
+      setWiggle((w) => w + 1);
+    }
+    prev.current = amount;
+  }, [amount]);
+
+  const stemH = 6 + 46 * pct;
+  const leafScale = Math.min(1, 0.3 + pct * 1.1);
+  const showLeaf1 = pct >= 0.15;
+  const showLeaf2 = pct >= 0.4;
+  const showLeaf3 = pct >= 0.65;
+  const bloom = pct >= 1;
+  const stemTop = 70 - stemH;
+
+  return (
+    <div className="plant-wrap" aria-hidden>
+      <svg viewBox="0 0 80 100" width="120" height="150" className="plant-svg">
+        <g key={`splash-${splash}`} className="plant-splash">
+          <circle cx="40" cy="-4" r="3" fill={color} opacity="0.9">
+            <animate attributeName="cy" from="-4" to={stemTop - 4} dur="0.55s" fill="freeze"/>
+            <animate attributeName="opacity" from="1" to="0" begin="0.45s" dur="0.2s" fill="freeze"/>
+          </circle>
+          <circle cx="40" cy={stemTop - 2} r="0" fill="none" stroke={color} strokeWidth="1.5" opacity="0">
+            <animate attributeName="r" from="0" to="10" begin="0.5s" dur="0.4s" fill="freeze"/>
+            <animate attributeName="opacity" from="0.7" to="0" begin="0.5s" dur="0.4s" fill="freeze"/>
+          </circle>
+        </g>
+
+        <g key={`plant-${wiggle}`} className="plant-body" style={{ transformOrigin: '40px 72px' }}>
+          <path d={`M 40 70 Q ${pct > 0.5 ? 42 : 40} ${70 - stemH/2} 40 ${stemTop}`}
+                fill="none" stroke="#4a7a3a" strokeWidth="2.2" strokeLinecap="round"/>
+
+          {showLeaf1 && (
+            <g transform={`translate(40 ${70 - stemH * 0.3}) scale(${leafScale})`}>
+              <path d="M 0 0 Q -10 -3 -14 -9 Q -10 -2 0 0 Z" fill="#6aa658" stroke="#3d6a32" strokeWidth="0.8" strokeLinejoin="round"/>
+              <path d="M 0 0 Q -8 -4 -13 -8" fill="none" stroke="#3d6a32" strokeWidth="0.5"/>
+            </g>
+          )}
+          {showLeaf2 && (
+            <g transform={`translate(40 ${70 - stemH * 0.55}) scale(${leafScale})`}>
+              <path d="M 0 0 Q 11 -3 15 -10 Q 10 -2 0 0 Z" fill="#7bb767" stroke="#3d6a32" strokeWidth="0.8" strokeLinejoin="round"/>
+              <path d="M 0 0 Q 9 -4 14 -9" fill="none" stroke="#3d6a32" strokeWidth="0.5"/>
+            </g>
+          )}
+          {showLeaf3 && (
+            <g transform={`translate(40 ${70 - stemH * 0.78}) scale(${leafScale})`}>
+              <path d="M 0 0 Q -9 -4 -12 -11 Q -8 -3 0 0 Z" fill="#6aa658" stroke="#3d6a32" strokeWidth="0.8" strokeLinejoin="round"/>
+            </g>
+          )}
+
+          {bloom ? (
+            <g transform={`translate(40 ${stemTop})`}>
+              {[0, 45, 90, 135, 180, 225, 270, 315].map((a) => (
+                <ellipse key={a} cx="0" cy="-7.2" rx="4.2" ry="7.4" fill="#E88AA6" stroke="#8a3b52" strokeWidth="0.7"
+                         transform={`rotate(${a})`}/>
+              ))}
+              {[22.5, 67.5, 112.5, 157.5, 202.5, 247.5, 292.5, 337.5].map((a) => (
+                <ellipse key={a} cx="0" cy="-5.4" rx="2.8" ry="5.2" fill="#F5B3C4" stroke="#8a3b52" strokeWidth="0.5"
+                         transform={`rotate(${a})`} opacity="0.85"/>
+              ))}
+              <circle cx="0" cy="0" r="3.6" fill="#ffd24a" stroke="#2a2420" strokeWidth="0.8"/>
+              <circle cx="-1.2" cy="-0.6" r="0.5" fill="#2a2420"/>
+              <circle cx="1.2" cy="-0.6" r="0.5" fill="#2a2420"/>
+              <path d="M -1.2 1 Q 0 1.7 1.2 1" fill="none" stroke="#2a2420" strokeWidth="0.6" strokeLinecap="round"/>
+            </g>
+          ) : (
+            pct > 0.02 && (
+              <circle cx="40" cy={stemTop} r={1.4 + 1.8 * pct} fill="#9cc688" stroke="#3d6a32" strokeWidth="0.7"/>
+            )
+          )}
+
+          <path d="M 28 70 L 52 70 L 50 88 Q 40 91 30 88 Z" fill="#c47a52" stroke="#6a3d22" strokeWidth="1.2" strokeLinejoin="round"/>
+          <rect x="26" y="68" width="28" height="4" rx="1" fill="#a45f3b" stroke="#6a3d22" strokeWidth="1.2"/>
+          <ellipse cx="40" cy="70" rx="12" ry="1.8" fill="#3d2a1c"/>
+        </g>
+
+        <ellipse cx="40" cy="94" rx="16" ry="2" fill="rgba(0,0,0,0.1)"/>
+      </svg>
+      <div className="plant-caption">
+        {bloom ? 'bloomed! 🌸' : pct >= 0.65 ? 'growing nicely' : pct >= 0.4 ? 'sprouting' : pct >= 0.15 ? 'peeking out' : 'thirsty…'}
+      </div>
+    </div>
+  );
+}
+
+Object.assign(window, { WaterBottle, WaterPlant, StepsViz, StepsWalker, StepsRing, StepsFootprints, fmtSteps });
