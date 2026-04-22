@@ -828,6 +828,12 @@ input, textarea { font-family: inherit; color: inherit; }
 
   /* Footer links wrap */
   .app-foot { flex-wrap: wrap; gap: 10px; }
+
+  /* Water section: bottle + plant side by side, caption below both */
+  .water-row .viz-wrap { display: contents; }
+  .water-row .viz-wrap > svg { order: 1; flex: 0 0 auto; }
+  .water-row .plant-wrap { order: 2; margin-left: 0; }
+  .water-row .viz-caption { order: 3; width: 100%; margin-top: 4px; }
 }
 
 @media (max-width: 480px) {
