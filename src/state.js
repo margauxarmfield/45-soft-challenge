@@ -287,6 +287,21 @@
     return unsub;
   }
 
+  // One-shot fetch — used when the tab returns to foreground after being
+  // backgrounded (mobile browsers freeze the WebSocket, so onSnapshot may
+  // have missed updates while the tab was hidden).
+  function fetchLatest(onRemoteChange) {
+    if (!_db) return;
+    _db.doc(FS_DOC).get().then((snap) => {
+      if (!snap.exists) return;
+      const raw = snap.data().data;
+      if (raw === _lastSynced) return;
+      const s = migrate(JSON.parse(raw));
+      _lastSynced = raw;
+      onRemoteChange(s);
+    }).catch((e) => console.warn('Firestore fetch failed', e));
+  }
+
   // Expose
   window.Challenge = {
     START_DATE,
@@ -308,6 +323,7 @@
     clone,
     initFirebase,
     subscribe,
+    fetchLatest,
     _saveRemote,
   };
 })();

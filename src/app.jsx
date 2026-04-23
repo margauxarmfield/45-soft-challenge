@@ -35,6 +35,19 @@ function App() {
     return unsub;
   }, []);
 
+  // Re-fetch from Firestore when the tab returns to foreground —
+  // mobile browsers freeze the WebSocket when backgrounded, so onSnapshot
+  // may have missed updates while the screen was locked.
+  useEffect(() => {
+    const onVisible = () => {
+      if (document.visibilityState === 'visible') {
+        Challenge.fetchLatest((remoteState) => setState(remoteState));
+      }
+    };
+    document.addEventListener('visibilitychange', onVisible);
+    return () => document.removeEventListener('visibilitychange', onVisible);
+  }, []);
+
   // Persist state locally + remotely on every change
   useEffect(() => {Challenge.save(state);}, [state]);
 
